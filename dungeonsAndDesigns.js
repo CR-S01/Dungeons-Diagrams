@@ -1,12 +1,19 @@
+/**
+ * @file Dungeons And Designs
+ * @version 1.1
+ *
+ */
+
 //Made by CR-S01, feel free to edit (:
-//reddit Link
-//github Link
+//reddit Link - https://www.reddit.com/user/CR-S01/
+//github Link - https://github.com/CR-S01/Dungeons-Diagrams
 
 //This is my first project using Javascript.
 //This is by no means a good Javascript project.
 //This may however be an okay enough NETronics project.
 
 //Shoutout to PartyWumpus' exaDOOM for example code
+//Shoutout to almostsweet's classicbbs
 
 
 // ----- NETronics notes -----
@@ -38,7 +45,7 @@ let solve = 0;
 let room = -2;
 const KEY = {"UP":119,"DOWN":115,"LEFT":97,"RIGHT":100,"WALL":106,"MONSTER":107,"CHEST":108,"RESET":114};//w, s, a, d, j, k, l, r
 
-/*    ROOMS
+/*    ROOMS    <- this should be an enum...
  * -1 - Intro
  *  0 - Main Menu
  *  1 - Code (for Dungeon)
@@ -219,7 +226,9 @@ function roomCodeInput(key){
 	
 	if (key==27){roomMenuGoto(); return;}//escape
 	
-	if (key==10 && solve==1){roomDungeonGoto(); return;}//enter
+	if (key==9){roomDungeonGotoRandom();}//tab
+	
+	if (key==10 && solve==1){roomDungeonGotoSeed(); return;}//enter
 	
 	let x = index%12+7 + ~~((index%12)/4)*3;
 	let y = (index<12) ? 5 : 6;
@@ -251,14 +260,8 @@ function roomCodeInput(key){
 	
 }
 
-function roomDungeonGoto(){
+function roomDungeonGotoSeed(){
 	
-	clearScreen();
-	room = 2;
-	index = 0;
-	timer = 0;
-	
-	drawDungeonBorders("Dungeons & D");
 	fromGlyphs();
 	
 	for (let i=0; i<64; i++){
@@ -270,6 +273,44 @@ function roomDungeonGoto(){
 	}
 	generateNumbersDungeon();
 	solve = checkDungeonSolve(true);
+	
+	roomDungeonGoto();
+	
+}
+
+function roomDungeonGotoRandom(){
+	
+	generateRandomDungeon();
+	toGlyphs();
+	generateNumbers();
+	
+	drawDungeonDiagram();
+	
+	for (let i=0; i<64; i++){
+		bE[i] = aE[i];
+		//if (aE[i]==1){aE[i]=0;}
+	}
+	for (let i=0; i<16; i++){
+		bN[i] = aN[i];
+	}
+	
+	generateNumbersDungeon();
+	solve = checkDungeonSolve(true);
+	
+	
+	
+	//roomDungeonGoto();
+	
+}
+
+function roomDungeonGoto(){
+	
+	clearScreen();
+	room = 2;
+	index = 0;
+	timer = 0;
+	
+	drawDungeonBorders("Dungeons & D");
 	
 	drawDungeonCode();
 	drawDungeonDiagram();
@@ -895,6 +936,97 @@ function resetDungeon(fill){
 	
 }
 
+function generateRandomDungeon(){
+	
+	//initialize arrays
+	const rand = [];
+	for (let i=0; i<64; i++){
+		rand[i] = i;
+		aE[i] = -1;
+	}
+	
+	//ez shuffle
+	for (let i=0; i<64; i++){
+		let j = ~~(Math.random()*64);
+		let tmp = rand[i];
+		rand[i] = rand[j];
+		rand[j] = tmp;
+	}
+	
+	for (let i=0; i<64; i++){
+		
+		fillArea(" ", 1, 2,19,27,10);
+		drawText(rand[i],3,2+3*(i%8),10+~~(i/8));
+		
+	}
+	
+	//place chest rooms
+	let chests = ~~(Math.random()*8);//between 0 and 7 attempts
+	for (let i=0; i<chests; i++){
+		let I = rand[i];
+		if (aE[I]!=-1){continue;}
+		//aE[I] = 2;
+		if((I%8>0) && (I%8<7) && (0<~~(I/8)) && (7>~~(I/8))){
+			//aE[I] = 3;
+			if ((aE[I-9]+aE[I-8]+aE[I-7]+aE[I-1]+aE[I+1]+aE[I+7]+aE[I+8]+aE[I+9])==-8){
+				aE[I] = 3;
+				aE[I-9] = 4;
+				aE[I-8] = 4;
+				aE[I-7] = 4;
+				aE[I-1] = 4;
+				aE[I+9] = 4;
+				aE[I+8] = 4;
+				aE[I+7] = 4;
+				aE[I+1] = 4;
+				if (I%8>1){//left
+					aE[I-10] = 1;
+					aE[I-2] = 1;
+					aE[I+6] = 1;
+				}
+				if (I%8<6){//right
+					aE[I+10] = 1;
+					aE[I+2] = 1;
+					aE[I-6] = 1;
+				}
+				if (1<~~(I/8)){//up
+					aE[I-15] = 1;
+					aE[I-16] = 1;
+					aE[I-17] = 1;
+				}
+				if (6>~~(I/8)){//right
+					aE[I+15] = 1;
+					aE[I+16] = 1;
+					aE[I+17] = 1;
+				}
+			}
+		}
+	}
+	
+	return;
+	
+	//place walls (and hallways ig)
+	for (let i=0; i<64; i++){
+		let I = rand[i];
+		if (aE[I]!=-1){continue;}
+		
+		tmp = 0;
+		tmp += 1*(I%8>0 && ~~(I/8)>0 && aE[I-1]==-1 && aE[I-8]==-1 && aE[I-9]==-1);
+		tmp += 2*(I%8<7 && ~~(I/8)>0 && aE[I+1]==-1 && aE[I-8]==-1 && aE[I-7]==-1);
+		tmp += 4*(I%8<7 && ~~(I/8)<7 && aE[I+1]==-1 && aE[I+8]==-1 && aE[I+9]==-1);
+		tmp += 8*(I%8>0 && ~~(I/8)<7 && aE[I-1]==-1 && aE[I+8]==-1 && aE[I+7]==-1);
+		
+		if (tmp!=0){
+			aE[I]=1;
+			continue;
+		}
+		
+		aE[I]=0;
+		
+		
+	}
+	
+}
+
 /// ----- ----- ----- UTILITY FUNCTIONS ----- ----- -----
 
 function keybindUpdate(key, bind1, bind2, x1,y1, x2,y2){
@@ -1012,6 +1144,25 @@ function indexToColor(i, e){
 
 function save(){
 	
+	if (typeof _bbs_load !== 'undefined'){
+		//in BBS, use new system
+		_bbs_save_type('dungeons&designs', 'code', glyphs);
+		_bbs_save_type('dungeons&designs', 'keys', JSON.stringify(KEY));
+		_bbs_save();
+		
+	}else{
+		//not in BBS, can use old code
+		const data = {};
+		data.code = glyphs;
+		data.keys = KEY;
+		saveData(JSON.stringify(data));
+		
+	}
+	
+}
+
+function saveOLD(){
+	//left in just in case
 	const data = {};
 	data.code = glyphs;
 	data.keys = KEY;
@@ -1021,6 +1172,46 @@ function save(){
 
 function load(){
 	
+	if (typeof _bbs_load !== 'undefined'){
+		//in BBS
+		if (!_bbs_load()) {return 0;}
+		glyphs	= _bbs_load_type('dungeons&designs', -1, 'code');
+		KEY		= _bbs_load_type('dungeons&designs', -1, 'keys');
+		
+		//deal with a lack of save data the blind way
+		if (glyphs === -1){
+			glyphs = [
+				'a','a',
+				'a','a','a','a',
+				'a','a','a','a',
+				'a','a','a','a',
+				'a','a','a','a',
+				'a','a','a','a'
+			]
+		}
+		if (KEY === -1){
+			KEY = {"UP":119,"DOWN":115,"LEFT":97,"RIGHT":100,
+				"WALL":106,"MONSTER":107,"CHEST":108,"RESET":114};
+		}else{
+			KEY = JSON.parse(KEY);
+		}
+		
+	}else{
+		//NOT in BBS
+		let json = loadData();
+		if (json == ""){
+			return false;
+		}
+	
+		const data = JSON.parse(loadData());
+		glyphs = data.code;
+		KEY = data.keys;
+		
+	}
+}
+
+function loadOLD(){
+	//left in just in case
 	let json = loadData();
 	if (json == ""){
 		return false;
