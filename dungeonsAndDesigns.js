@@ -226,8 +226,6 @@ function roomCodeInput(key){
 	
 	if (key==27){roomMenuGoto(); return;}//escape
 	
-	if (key==9){roomDungeonGotoRandom();}//tab
-	
 	if (key==10 && solve==1){roomDungeonGotoSeed(); return;}//enter
 	
 	let x = index%12+7 + ~~((index%12)/4)*3;
@@ -275,31 +273,6 @@ function roomDungeonGotoSeed(){
 	solve = checkDungeonSolve(true);
 	
 	roomDungeonGoto();
-	
-}
-
-function roomDungeonGotoRandom(){
-	
-	generateRandomDungeon();
-	toGlyphs();
-	generateNumbers();
-	
-	drawDungeonDiagram();
-	
-	for (let i=0; i<64; i++){
-		bE[i] = aE[i];
-		//if (aE[i]==1){aE[i]=0;}
-	}
-	for (let i=0; i<16; i++){
-		bN[i] = aN[i];
-	}
-	
-	generateNumbersDungeon();
-	solve = checkDungeonSolve(true);
-	
-	
-	
-	//roomDungeonGoto();
 	
 }
 
@@ -932,97 +905,6 @@ function resetDungeon(fill){
 	}
 	for (let i=0; i<64; i++){
 		aE[i] = fill;
-	}
-	
-}
-
-function generateRandomDungeon(){
-	
-	//initialize arrays
-	const rand = [];
-	for (let i=0; i<64; i++){
-		rand[i] = i;
-		aE[i] = -1;
-	}
-	
-	//ez shuffle
-	for (let i=0; i<64; i++){
-		let j = ~~(Math.random()*64);
-		let tmp = rand[i];
-		rand[i] = rand[j];
-		rand[j] = tmp;
-	}
-	
-	for (let i=0; i<64; i++){
-		
-		fillArea(" ", 1, 2,19,27,10);
-		drawText(rand[i],3,2+3*(i%8),10+~~(i/8));
-		
-	}
-	
-	//place chest rooms
-	let chests = ~~(Math.random()*8);//between 0 and 7 attempts
-	for (let i=0; i<chests; i++){
-		let I = rand[i];
-		if (aE[I]!=-1){continue;}
-		//aE[I] = 2;
-		if((I%8>0) && (I%8<7) && (0<~~(I/8)) && (7>~~(I/8))){
-			//aE[I] = 3;
-			if ((aE[I-9]+aE[I-8]+aE[I-7]+aE[I-1]+aE[I+1]+aE[I+7]+aE[I+8]+aE[I+9])==-8){
-				aE[I] = 3;
-				aE[I-9] = 4;
-				aE[I-8] = 4;
-				aE[I-7] = 4;
-				aE[I-1] = 4;
-				aE[I+9] = 4;
-				aE[I+8] = 4;
-				aE[I+7] = 4;
-				aE[I+1] = 4;
-				if (I%8>1){//left
-					aE[I-10] = 1;
-					aE[I-2] = 1;
-					aE[I+6] = 1;
-				}
-				if (I%8<6){//right
-					aE[I+10] = 1;
-					aE[I+2] = 1;
-					aE[I-6] = 1;
-				}
-				if (1<~~(I/8)){//up
-					aE[I-15] = 1;
-					aE[I-16] = 1;
-					aE[I-17] = 1;
-				}
-				if (6>~~(I/8)){//right
-					aE[I+15] = 1;
-					aE[I+16] = 1;
-					aE[I+17] = 1;
-				}
-			}
-		}
-	}
-	
-	return;
-	
-	//place walls (and hallways ig)
-	for (let i=0; i<64; i++){
-		let I = rand[i];
-		if (aE[I]!=-1){continue;}
-		
-		tmp = 0;
-		tmp += 1*(I%8>0 && ~~(I/8)>0 && aE[I-1]==-1 && aE[I-8]==-1 && aE[I-9]==-1);
-		tmp += 2*(I%8<7 && ~~(I/8)>0 && aE[I+1]==-1 && aE[I-8]==-1 && aE[I-7]==-1);
-		tmp += 4*(I%8<7 && ~~(I/8)<7 && aE[I+1]==-1 && aE[I+8]==-1 && aE[I+9]==-1);
-		tmp += 8*(I%8>0 && ~~(I/8)<7 && aE[I-1]==-1 && aE[I+8]==-1 && aE[I+7]==-1);
-		
-		if (tmp!=0){
-			aE[I]=1;
-			continue;
-		}
-		
-		aE[I]=0;
-		
-		
 	}
 	
 }
